@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skills Intelligence</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#ffffff}
+  .trc{font-family:Arial,Helvetica,sans-serif;color:#0f172a;padding:16px 18px 8px;max-width:1200px;margin:0 auto}
+  .trc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+  .trc-title{font-size:20px;font-weight:700;letter-spacing:-.2px}
+  .trc-sub{font-size:11.5px;color:#64748b;margin-top:4px}
+  .kpis{display:flex;gap:8px;flex-wrap:wrap}
+  .kpi{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:7px 13px;min-width:92px}
+  .kpi b{display:block;font-size:16px;line-height:1.25}
+  .kpi span{font-size:9.5px;color:#64748b}
+  .trc-body{display:grid;grid-template-columns:1.9fr 1fr;gap:16px;align-items:start}
+  .map-card{border:1px solid #e2e8f0;border-radius:14px;padding:8px 10px 4px;background:#fff;position:relative;overflow:hidden}
+  .panel{border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;padding:14px 15px;min-height:560px;display:flex;flex-direction:column}
+  .eyebrow{font-size:9.5px;letter-spacing:.09em;color:#94a3b8;font-weight:700}
+  h2{font-size:17px;margin:6px 0 2px;line-height:1.25}
+  .badges{margin-top:4px}
+  .badge{display:inline-block;font-size:9.5px;padding:3px 8px;border-radius:99px;margin:4px 5px 0 0;font-weight:600}
+  .badge.hard{background:#e0e7ff;color:#1d4ed8}
+  .badge.soft{background:#d1fae5;color:#047857}
+  .badge.gold{background:#fef3c7;color:#b45309}
+  .badge.gray{background:#e2e8f0;color:#475569}
+  .desc{font-size:11.5px;line-height:1.6;color:#334155;margin:10px 0 4px}
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0 2px}
+  .metric{background:#fff;border:1px solid #e2e8f0;border-radius:9px;padding:7px 9px}
+  .metric b{display:block;font-size:15px;line-height:1.3}
+  .metric span{font-size:9px;color:#64748b}
+  .mini-head{font-size:10.5px;font-weight:700;color:#475569;margin:14px 0 0}
+  .mini-note{font-size:9px;color:#94a3b8;margin-top:2px;line-height:1.4}
+  .panel-foot{font-size:8.5px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px;margin-top:auto;line-height:1.55}
+  #mini{display:block;width:100%;max-width:320px;height:auto;margin:0 auto}
+  .legend{display:flex;gap:13px;font-size:9.5px;color:#64748b;margin:0 0 2px 6px;flex-wrap:wrap}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+  .hint{font-size:9px;color:#94a3b8;padding:0 6px 6px}
+  .tip{position:absolute;pointer-events:none;background:#0f172a;color:#fff;font-size:10px;line-height:1.5;padding:7px 9px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:230px;z-index:9;box-shadow:0 6px 18px rgba(15,23,42,.25)}
+  .tip b{font-size:10.5px}
+  #map{display:block;width:100%;height:auto;touch-action:manipulation}
+  .node,.quad{cursor:pointer}
+  .reset{position:absolute;top:14px;right:16px;font-size:9.5px;color:#64748b;background:#fff;border:1px solid #e2e8f0;border-radius:99px;padding:3px 9px;cursor:pointer}
+  .reset:hover{background:#f1f5f9;color:#0f172a}
+  @media (max-width:860px){
+    .trc-body{grid-template-columns:1fr}
+    .panel{min-height:0}
+  }
+</style>
+</head>
+<body>
+<div class="trc">
+  <div class="trc-head">
+    <div>
+      <div class="trc-title">Skills Intelligence: Peta Peluang Skill</div>
+      <div class="trc-sub" id="subtitle"></div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </div>
+
+  <div class="trc-body">
+    <div class="map-card">
+      <div class="legend">
+        <span><i class="dot" style="background:#1d4ed8"></i>Hard skill</span>
+        <span><i class="dot" style="background:#10b981"></i>Soft skill</span>
+        <span><i class="dot" style="background:#fff;border:2px solid #f59e0b"></i>Kebutuhan role</span>
+      </div>
+      <svg id="map" viewBox="0 0 820 540" role="img" aria-label="Peta peluang skill"></svg>
+      <div class="hint">Klik gelembung skill atau label kuadran untuk melihat penjelasannya. Klik area kosong untuk kembali ke ringkasan.</div>
+      <div class="tip" id="tip"></div>
+      <button class="reset" id="reset">Ringkasan</button>
+    </div>
+
+    <aside class="panel">
+      <div class="eyebrow" id="p-eyebrow">RINGKASAN</div>
+      <h2 id="p-title">Skills Intelligence</h2>
+      <div class="badges" id="p-badges"></div>
+      <p class="desc" id="p-desc"></p>
+      <div class="metrics" id="p-metrics"></div>
+      <div class="mini-head" id="p-mini-head"></div>
+      <svg id="mini" viewBox="0 0 320 200"></svg>
+      <div class="mini-note" id="p-mini-note"></div>
+      <div class="panel-foot">Cincin emas = skill yang diminta role target · Ukuran gelembung = jumlah alumni · Warna = hard atau soft skill.</div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function () {
+  const DATA = {"meta": {"industry": "Semua", "role": "Data Analyst", "roleFound": true, "roleHolders": 3, "roleNote": "riwayat jabatan", "alumni": 394, "uniqueSkills": 2658, "skillRows": 5963, "hardPct": 87.4, "softPct": 12.6, "readiness": 9.7, "avgSkills": 15.1, "priority": ["Python", "Finance", "Analytical Skills"], "owned": [], "summary": "Dari 394 alumni dan 2,658 skill unik, 13% skill merupakan soft skills dan 87% hard skills. Kesiapan menuju Data Analyst baru mencapai 10%, dengan prioritas Python, Finance, dan Analytical Skills. Skill yang paling menguat: Customer Service, Problem Solving, dan Administration. Titik pengungkit terbesar: Communication dan Leadership.", "quadrants": {"naik": 3, "inti": 3, "niche": 7, "mapan": 7}}, "axis": {"xMax": 30.67, "yMin": -8.63, "yMax": 7.11, "xMid": 13.71}, "skills": [{"name": "Leadership", "type": "Soft", "supply": 26.9, "momentum": -3.0, "alumni": 106, "partners": 19, "strength": 566, "roleNeed": null, "roleRank": null, "quadrant": "mapan", "labelPos": "top center", "recentShare": 25.4, "earlierShare": 28.4, "desc": "27% alumni (106 orang) mencantumkan Leadership di profilnya. Momentumnya turun -3 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 566), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Microsoft Office", "type": "Hard", "supply": 23.9, "momentum": -1.0, "alumni": 94, "partners": 19, "strength": 463, "roleNeed": null, "roleRank": null, "quadrant": "mapan", "labelPos": "top center", "recentShare": 23.4, "earlierShare": 24.4, "desc": "24% alumni (94 orang) mencantumkan Microsoft Office di profilnya. Momentumnya turun -1 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 463), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Communication", "type": "Soft", "supply": 23.9, "momentum": 1.0, "alumni": 94, "partners": 19, "strength": 569, "roleNeed": 66.7, "roleRank": 5, "quadrant": "inti", "labelPos": "top center", "recentShare": 24.4, "earlierShare": 23.4, "desc": "24% alumni (94 orang) mencantumkan Communication di profilnya. Momentumnya naik +1 poin persentase, artinya makin sering muncul pada separuh data terbaru. Skill ini termasuk kebutuhan Data Analyst: 67% alumni di role tersebut memilikinya, dan berada di prioritas #5 untuk dikejar. Terhubung kuat dengan 19 skill lain (skor keterhubungan 569), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pertahankan sebagai kekuatan inti dan bahan portofolio."}, {"name": "Microsoft Excel", "type": "Hard", "supply": 21.3, "momentum": -4.1, "alumni": 84, "partners": 19, "strength": 462, "roleNeed": 66.7, "roleRank": 4, "quadrant": "mapan", "labelPos": "top center", "recentShare": 19.3, "earlierShare": 23.4, "desc": "21% alumni (84 orang) mencantumkan Microsoft Excel di profilnya. Momentumnya turun -4 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini termasuk kebutuhan Data Analyst: 67% alumni di role tersebut memilikinya, dan berada di prioritas #4 untuk dikejar. Terhubung kuat dengan 19 skill lain (skor keterhubungan 462), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Project Management", "type": "Hard", "supply": 20.8, "momentum": -1.0, "alumni": 82, "partners": 19, "strength": 415, "roleNeed": null, "roleRank": null, "quadrant": "mapan", "labelPos": "bottom center", "recentShare": 20.3, "earlierShare": 21.3, "desc": "21% alumni (82 orang) mencantumkan Project Management di profilnya. Momentumnya turun -1 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 415), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Teamwork", "type": "Soft", "supply": 19.3, "momentum": 0.0, "alumni": 76, "partners": 19, "strength": 466, "roleNeed": null, "roleRank": null, "quadrant": "inti", "labelPos": "top center", "recentShare": 19.3, "earlierShare": 19.3, "desc": "19% alumni (76 orang) mencantumkan Teamwork di profilnya. Momentumnya relatif stabil antar periode data. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 466), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pertahankan sebagai kekuatan inti dan bahan portofolio."}, {"name": "Problem Solving", "type": "Soft", "supply": 18.0, "momentum": 3.6, "alumni": 71, "partners": 19, "strength": 446, "roleNeed": null, "roleRank": null, "quadrant": "inti", "labelPos": "top center", "recentShare": 19.8, "earlierShare": 16.2, "desc": "18% alumni (71 orang) mencantumkan Problem Solving di profilnya. Momentumnya naik +4 poin persentase, artinya makin sering muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 446), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pertahankan sebagai kekuatan inti dan bahan portofolio."}, {"name": "Public Speaking", "type": "Soft", "supply": 15.7, "momentum": -5.1, "alumni": 62, "partners": 19, "strength": 377, "roleNeed": null, "roleRank": null, "quadrant": "mapan", "labelPos": "bottom center", "recentShare": 13.2, "earlierShare": 18.3, "desc": "16% alumni (62 orang) mencantumkan Public Speaking di profilnya. Momentumnya turun -5 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 377), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Analytical Skills", "type": "Hard", "supply": 15.2, "momentum": -7.1, "alumni": 60, "partners": 19, "strength": 368, "roleNeed": 66.7, "roleRank": 3, "quadrant": "mapan", "labelPos": "top center", "recentShare": 11.7, "earlierShare": 18.8, "desc": "15% alumni (60 orang) mencantumkan Analytical Skills di profilnya. Momentumnya turun -7 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini termasuk kebutuhan Data Analyst: 67% alumni di role tersebut memilikinya, dan berada di prioritas #3 untuk dikejar. Terhubung kuat dengan 19 skill lain (skor keterhubungan 368), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Data Analysis", "type": "Hard", "supply": 14.5, "momentum": -0.5, "alumni": 57, "partners": 18, "strength": 299, "roleNeed": null, "roleRank": null, "quadrant": "mapan", "labelPos": "top center", "recentShare": 14.2, "earlierShare": 14.7, "desc": "14% alumni (57 orang) mencantumkan Data Analysis di profilnya. Momentumnya relatif stabil antar periode data. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 18 skill lain (skor keterhubungan 299), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: jaga relevansi lewat pelatihan lanjutan."}, {"name": "Research", "type": "Hard", "supply": 12.9, "momentum": 1.5, "alumni": 51, "partners": 17, "strength": 266, "roleNeed": null, "roleRank": null, "quadrant": "naik", "labelPos": "top center", "recentShare": 13.7, "earlierShare": 12.2, "desc": "13% alumni (51 orang) mencantumkan Research di profilnya. Momentumnya naik +2 poin persentase, artinya makin sering muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 17 skill lain (skor keterhubungan 266), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: masukkan ke kurikulum sebagai skill prioritas."}, {"name": "Microsoft Word", "type": "Hard", "supply": 12.2, "momentum": -4.1, "alumni": 48, "partners": 18, "strength": 318, "roleNeed": null, "roleRank": null, "quadrant": "niche", "labelPos": "bottom center", "recentShare": 10.2, "earlierShare": 14.2, "desc": "12% alumni (48 orang) mencantumkan Microsoft Word di profilnya. Momentumnya turun -4 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 18 skill lain (skor keterhubungan 318), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}, {"name": "English", "type": "Hard", "supply": 11.2, "momentum": -1.0, "alumni": 44, "partners": 19, "strength": 269, "roleNeed": null, "roleRank": null, "quadrant": "niche", "labelPos": "middle right", "recentShare": 10.7, "earlierShare": 11.7, "desc": "11% alumni (44 orang) mencantumkan English di profilnya. Momentumnya turun -1 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 19 skill lain (skor keterhubungan 269), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}, {"name": "Team Management", "type": "Soft", "supply": 10.7, "momentum": -2.0, "alumni": 42, "partners": 18, "strength": 230, "roleNeed": null, "roleRank": null, "quadrant": "niche", "labelPos": "middle right", "recentShare": 9.6, "earlierShare": 11.7, "desc": "11% alumni (42 orang) mencantumkan Team Management di profilnya. Momentumnya turun -2 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 18 skill lain (skor keterhubungan 230), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}, {"name": "Time Management", "type": "Soft", "supply": 10.2, "momentum": -1.0, "alumni": 40, "partners": 17, "strength": 263, "roleNeed": null, "roleRank": null, "quadrant": "niche", "labelPos": "top center", "recentShare": 9.6, "earlierShare": 10.7, "desc": "10% alumni (40 orang) mencantumkan Time Management di profilnya. Momentumnya turun -1 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 17 skill lain (skor keterhubungan 263), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}, {"name": "Management", "type": "Soft", "supply": 9.6, "momentum": -2.0, "alumni": 38, "partners": 18, "strength": 232, "roleNeed": null, "roleRank": null, "quadrant": "niche", "labelPos": "bottom center", "recentShare": 8.6, "earlierShare": 10.7, "desc": "10% alumni (38 orang) mencantumkan Management di profilnya. Momentumnya turun -2 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 18 skill lain (skor keterhubungan 232), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}, {"name": "Administration", "type": "Hard", "supply": 9.4, "momentum": 1.5, "alumni": 37, "partners": 18, "strength": 236, "roleNeed": null, "roleRank": null, "quadrant": "naik", "labelPos": "top center", "recentShare": 10.2, "earlierShare": 8.6, "desc": "9% alumni (37 orang) mencantumkan Administration di profilnya. Momentumnya naik +2 poin persentase, artinya makin sering muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 18 skill lain (skor keterhubungan 236), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: masukkan ke kurikulum sebagai skill prioritas."}, {"name": "Customer Service", "type": "Soft", "supply": 8.9, "momentum": 5.6, "alumni": 35, "partners": 18, "strength": 192, "roleNeed": null, "roleRank": null, "quadrant": "naik", "labelPos": "top center", "recentShare": 11.7, "earlierShare": 6.1, "desc": "9% alumni (35 orang) mencantumkan Customer Service di profilnya. Momentumnya naik +6 poin persentase, artinya makin sering muncul pada separuh data terbaru. Skill ini belum masuk profil Data Analyst, sehingga belum menjadi kebutuhan utama role tersebut. Terhubung kuat dengan 18 skill lain (skor keterhubungan 192), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: masukkan ke kurikulum sebagai skill prioritas."}, {"name": "Python", "type": "Hard", "supply": 4.8, "momentum": -4.6, "alumni": 19, "partners": 11, "strength": 64, "roleNeed": 66.7, "roleRank": 1, "quadrant": "niche", "labelPos": "top center", "recentShare": 2.5, "earlierShare": 7.1, "desc": "5% alumni (19 orang) mencantumkan Python di profilnya. Momentumnya turun -5 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini termasuk kebutuhan Data Analyst: 67% alumni di role tersebut memilikinya, dan berada di prioritas #1 untuk dikejar. Terhubung kuat dengan 11 skill lain (skor keterhubungan 64), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}, {"name": "Finance", "type": "Hard", "supply": 5.6, "momentum": -1.0, "alumni": 22, "partners": 15, "strength": 117, "roleNeed": 66.7, "roleRank": 2, "quadrant": "niche", "labelPos": "top center", "recentShare": 5.1, "earlierShare": 6.1, "desc": "6% alumni (22 orang) mencantumkan Finance di profilnya. Momentumnya turun -1 poin persentase, artinya makin jarang muncul pada separuh data terbaru. Skill ini termasuk kebutuhan Data Analyst: 67% alumni di role tersebut memilikinya, dan berada di prioritas #2 untuk dikejar. Terhubung kuat dengan 15 skill lain (skor keterhubungan 117), sehingga berpotensi menjadi pengungkit pembelajaran. Rekomendasi: pantau trennya, jangan jadikan prioritas utama."}], "quadrants": {"naik": {"label": "Naik Daun", "desc": "Skill langka yang justru makin sering muncul pada profil terbaru. Kuadran ini adalah sinyal kebutuhan masa depan: paling layak menjadi modul pelatihan baru dan pembeda lulusan. Rekomendasi: masukkan ke kurikulum sebagai skill prioritas.", "count": 3, "avgSupply": 10.4, "avgMomentum": 2.9, "roleCount": 0, "members": [{"name": "Research", "supply": 12.944162436548224, "momentum": 1.5228426395939074, "alumni": 51}, {"name": "Administration", "supply": 9.390862944162437, "momentum": 1.5228426395939092, "alumni": 37}, {"name": "Customer Service", "supply": 8.883248730964468, "momentum": 5.583756345177665, "alumni": 35}], "color": "#059669", "fill": "#ecfdf5"}, "inti": {"label": "Kekuatan Inti", "desc": "Skill yang sudah banyak dimiliki dan makin menguat. Ini identitas kompetensi lulusan: jaga kualitas, kedalaman, dan bukti portofolionya. Rekomendasi: pertahankan sebagai kekuatan inti dan bahan portofolio.", "count": 3, "avgSupply": 20.4, "avgMomentum": 1.5, "roleCount": 1, "members": [{"name": "Communication", "supply": 23.85786802030457, "momentum": 1.0152284263959395, "alumni": 94}, {"name": "Teamwork", "supply": 19.289340101522843, "momentum": 0.0, "alumni": 76}, {"name": "Problem Solving", "supply": 18.02030456852792, "momentum": 3.55329949238579, "alumni": 71}], "color": "#1d4ed8", "fill": "#eff6ff"}, "niche": {"label": "Niche", "desc": "Skill langka yang juga melemah. Boleh dipantau, tetapi belum layak menjadi investasi utama program pelatihan. Rekomendasi: pantau trennya, jangan jadikan prioritas utama.", "count": 7, "avgSupply": 9.2, "avgMomentum": -2.2, "roleCount": 2, "members": [{"name": "Microsoft Word", "supply": 12.18274111675127, "momentum": -4.060913705583758, "alumni": 48}, {"name": "English", "supply": 11.16751269035533, "momentum": -1.0152284263959395, "alumni": 44}, {"name": "Team Management", "supply": 10.65989847715736, "momentum": -2.030456852791879, "alumni": 42}, {"name": "Time Management", "supply": 10.152284263959391, "momentum": -1.0152284263959395, "alumni": 40}, {"name": "Management", "supply": 9.644670050761421, "momentum": -2.030456852791879, "alumni": 38}, {"name": "Finance", "supply": 5.583756345177665, "momentum": -1.0152284263959395, "alumni": 22}], "color": "#64748b", "fill": "#f8fafc"}, "mapan": {"label": "Kompetensi Mapan", "desc": "Skill yang banyak dimiliki tetapi makin jarang muncul. Risikonya basi: tetap relevan hanya jika dikombinasikan dengan skill baru. Rekomendasi: jaga relevansi lewat pelatihan lanjutan.", "count": 7, "avgSupply": 19.8, "avgMomentum": -3.1, "roleCount": 2, "members": [{"name": "Leadership", "supply": 26.903553299492383, "momentum": -3.045685279187822, "alumni": 106}, {"name": "Microsoft Office", "supply": 23.85786802030457, "momentum": -1.0152284263959395, "alumni": 94}, {"name": "Microsoft Excel", "supply": 21.31979695431472, "momentum": -4.060913705583758, "alumni": 84}, {"name": "Project Management", "supply": 20.812182741116754, "momentum": -1.0152284263959395, "alumni": 82}, {"name": "Public Speaking", "supply": 15.736040609137056, "momentum": -5.076142131979694, "alumni": 62}, {"name": "Analytical Skills", "supply": 15.228426395939088, "momentum": -7.1065989847715745, "alumni": 60}], "color": "#b45309", "fill": "#fefce8"}}};
+  const META = DATA.meta, AX = DATA.axis, SKILLS = DATA.skills, QUADS = DATA.quadrants;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const W = 820, H = 540, PL = 58, PR = 24, PT = 24, PB = 48;
+  const X = v => PL + (v / AX.xMax) * (W - PL - PR);
+  const Y = v => H - PB - ((v - AX.yMin) / (AX.yMax - AX.yMin)) * (H - PT - PB);
+
+  const map = document.getElementById('map');
+  const tip = document.getElementById('tip');
+  const card = map.parentElement;
+
+  function el(name, attrs, parent) {
+    const node = document.createElementNS(NS, name);
+    for (const key in (attrs || {})) node.setAttribute(key, attrs[key]);
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
+  function fmtPct(value, digits) {
+    return (digits ? value.toFixed(digits) : Math.round(value)) + '%';
+  }
+
+  function fmtSigned(value) {
+    const rounded = Math.round(value);
+    return (rounded > 0 ? '+' : '') + rounded + ' p.p.';
+  }
+
+  /* ---------------------------------------------------------------- HEADER */
+  document.getElementById('subtitle').textContent =
+    'Supply × momentum × keterhubungan × kebutuhan role · Industri: ' + META.industry +
+    ' · Role acuan: ' + META.role;
+
+  const kpis = [
+    [META.alumni.toLocaleString('id-ID'), 'Alumni'],
+    [META.uniqueSkills.toLocaleString('id-ID'), 'Skill unik'],
+    [Math.round(META.hardPct) + ' : ' + Math.round(META.softPct), 'Hard : Soft'],
+    [META.roleFound ? Math.round(META.readiness) + '%' : '—', 'Readiness ' + META.role],
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(function (item) {
+    return '<div class="kpi"><b>' + item[0] + '</b><span>' + item[1] + '</span></div>';
+  }).join('');
+
+  /* ------------------------------------------------------------------ MAP */
+  const quadRects = {};
+  const quadGroups = {};
+  const quadOrder = [
+    ['naik', 0, 0], ['inti', 1, 0], ['niche', 0, 1], ['mapan', 1, 1],
+  ];
+
+  quadOrder.forEach(function (entry) {
+    const key = entry[0], col = entry[1], row = entry[2];
+    const x0 = col === 0 ? 0 : AX.xMid;
+    const x1 = col === 0 ? AX.xMid : AX.xMax;
+    const y0 = row === 0 ? 0 : AX.yMin;
+    const y1 = row === 0 ? AX.yMax : 0;
+
+    const rect = el('rect', {
+      x: X(x0), y: Y(y1), width: Math.max(X(x1) - X(x0), 0), height: Math.max(Y(y0) - Y(y1), 0),
+      fill: QUADS[key] ? QUADS[key].fill : '#fff', 'fill-opacity': 0.9,
+    }, map);
+    quadRects[key] = rect;
+
+    const isTop = row === 0;
+    const isLeft = col === 0;
+    const gx = isLeft ? X(x0) + 12 : X(x1) - 12;
+    const gy = isTop ? Y(y1) + 16 : Y(y0) - 16;
+    const group = el('g', { class: 'quad' }, map);
+    const text = el('text', {
+      x: gx, y: gy,
+      'text-anchor': isLeft ? 'start' : 'end',
+      'font-size': 9.5, 'font-weight': 700, 'letter-spacing': '.06em',
+      fill: '#94a3b8',
+    }, group);
+    text.textContent = (QUADS[key] ? QUADS[key].label.toUpperCase() : key) +
+      ' · ' + (QUADS[key] ? QUADS[key].count : 0);
+    group.addEventListener('click', function (event) {
+      event.stopPropagation();
+      selectQuadrant(key);
+    });
+    group.addEventListener('mouseenter', function () {
+      text.setAttribute('fill', '#475569');
+    });
+    group.addEventListener('mouseleave', function () {
+      text.setAttribute('fill', '#94a3b8');
+    });
+    quadGroups[key] = { group: group, text: text };
+  });
+
+  /* Grid & sumbu */
+  const gridGroup = el('g', {}, map);
+  for (let tick = 0; tick <= 100; tick += 20) {
+    if (tick > AX.xMax) break;
+    el('line', {
+      x1: X(tick), x2: X(tick), y1: PT, y2: H - PB,
+      stroke: '#f1f5f9', 'stroke-width': 1,
+    }, gridGroup);
+    const label = el('text', {
+      x: X(tick), y: H - PB + 16, 'text-anchor': 'middle',
+      'font-size': 9.5, fill: '#94a3b8',
+    }, gridGroup);
+    label.textContent = tick + '%';
+  }
+
+  const yStep = niceStep((AX.yMax - AX.yMin) / 6);
+  const yStart = Math.ceil(AX.yMin / yStep) * yStep;
+  for (let value = yStart; value <= AX.yMax; value += yStep) {
+    el('line', {
+      x1: PL, x2: W - PR, y1: Y(value), y2: Y(value),
+      stroke: '#f1f5f9', 'stroke-width': 1,
+    }, gridGroup);
+    const label = el('text', {
+      x: PL - 8, y: Y(value) + 3, 'text-anchor': 'end',
+      'font-size': 9.5, fill: '#94a3b8',
+    }, gridGroup);
+    label.textContent = (value > 0 ? '+' : '') + Math.round(value);
+  }
+
+  el('line', {
+    x1: PL, x2: W - PR, y1: Y(0), y2: Y(0),
+    stroke: '#cbd5e1', 'stroke-width': 1.2, 'stroke-dasharray': '4 4',
+  }, map);
+  el('line', {
+    x1: X(AX.xMid), x2: X(AX.xMid), y1: PT, y2: H - PB,
+    stroke: '#cbd5e1', 'stroke-width': 1.2, 'stroke-dasharray': '4 4',
+  }, map);
+
+  const axisX = el('text', {
+    x: W - PR, y: H - 10, 'text-anchor': 'end', 'font-size': 10, fill: '#64748b',
+  }, map);
+  axisX.textContent = 'Supply — persentase alumni yang memiliki skill →';
+
+  const axisY = el('text', {
+    x: 12, y: PT + 4, 'font-size': 10, fill: '#64748b',
+    transform: 'rotate(-90 12 ' + (PT + 4) + ')', 'text-anchor': 'end',
+  }, map);
+  axisY.textContent = 'Momentum — perubahan pangsa alumni (p.p.) →';
+
+  function niceStep(raw) {
+    const power = Math.pow(10, Math.floor(Math.log10(Math.max(raw, 1e-6))));
+    const options = [1, 2, 2.5, 5, 10];
+    for (let i = 0; i < options.length; i++) {
+      if (raw <= options[i] * power) return options[i] * power;
+    }
+    return 10 * power;
+  }
+
+  /* Gelembung skill */
+  const maxAlumni = Math.max.apply(null, SKILLS.map(function (skill) { return skill.alumni; }));
+  const nodeRefs = [];
+
+  SKILLS.forEach(function (skill, index) {
+    const group = el('g', { class: 'node' }, map);
+    const radius = 6 + 11 * Math.sqrt(skill.alumni / maxAlumni);
+    const hasRole = skill.roleNeed !== null && skill.roleNeed !== undefined;
+
+    const circle = el('circle', {
+      cx: X(skill.supply), cy: Y(skill.momentum), r: radius,
+      fill: skill.type === 'Soft' ? '#10b981' : '#1d4ed8',
+      'fill-opacity': 0.92,
+      stroke: hasRole ? '#f59e0b' : '#ffffff',
+      'stroke-width': hasRole ? 2.6 : 1.2,
+    }, group);
+
+    const text = el('text', labelAttrs(skill, radius), group);
+    text.textContent = shortName(skill.name);
+
+    group.addEventListener('click', function (event) {
+      event.stopPropagation();
+      selectSkill(index);
+    });
+    group.addEventListener('mouseenter', function () {
+      circle.setAttribute('r', radius + 2);
+      showTip(skill, event);
+    });
+    group.addEventListener('mousemove', moveTip);
+    group.addEventListener('mouseleave', function () {
+      circle.setAttribute('r', radius);
+      hideTip();
+    });
+
+    nodeRefs.push({ group: group, circle: circle, text: text, radius: radius, hasRole: hasRole });
+  });
+
+  function shortName(name) {
+    return name.length > 22 ? name.slice(0, 21).replace(/\s+$/, '') + '…' : name;
+  }
+
+  function shortLabel(name, limit) {
+    return name.length > limit ? name.slice(0, limit - 1).replace(/\s+$/, '') + '…' : name;
+  }
+
+  function labelAttrs(skill, radius) {
+    const base = {
+      'font-size': 9, fill: '#334155', 'pointer-events': 'none',
+    };
+    switch (skill.labelPos) {
+      case 'top center':
+        return Object.assign(base, { x: X(skill.supply), y: Y(skill.momentum) - radius - 4, 'text-anchor': 'middle' });
+      case 'bottom center':
+        return Object.assign(base, { x: X(skill.supply), y: Y(skill.momentum) + radius + 11, 'text-anchor': 'middle' });
+      case 'middle right':
+        return Object.assign(base, { x: X(skill.supply) + radius + 4, y: Y(skill.momentum) + 3.5, 'text-anchor': 'start' });
+      case 'middle left':
+        return Object.assign(base, { x: X(skill.supply) - radius - 4, y: Y(skill.momentum) + 3.5, 'text-anchor': 'end' });
+      case 'top right':
+        return Object.assign(base, { x: X(skill.supply) + radius + 2, y: Y(skill.momentum) - radius, 'text-anchor': 'start' });
+      case 'bottom right':
+        return Object.assign(base, { x: X(skill.supply) + radius + 2, y: Y(skill.momentum) + radius + 9, 'text-anchor': 'start' });
+      case 'top left':
+        return Object.assign(base, { x: X(skill.supply) - radius - 2, y: Y(skill.momentum) - radius, 'text-anchor': 'end' });
+      default:
+        return Object.assign(base, { x: X(skill.supply) - radius - 2, y: Y(skill.momentum) + radius + 9, 'text-anchor': 'end' });
+    }
+  }
+
+  function showTip(skill, event) {
+    let html = '<b>' + skill.name + '</b><br>' +
+      'Dimiliki: ' + fmtPct(skill.supply) + ' (' + skill.alumni + ' alumni)<br>' +
+      'Momentum: ' + fmtSigned(skill.momentum);
+    if (skill.roleNeed !== null && skill.roleNeed !== undefined) {
+      html += '<br>Diminta role: ' + fmtPct(skill.roleNeed);
+    }
+    html += '<br><span style="color:#94a3b8">Klik untuk detail</span>';
+    tip.innerHTML = html;
+    tip.style.opacity = 1;
+    moveTip(event);
+  }
+
+  function moveTip(event) {
+    const rect = card.getBoundingClientRect();
+    let left = event.clientX - rect.left + 14;
+    let top = event.clientY - rect.top + 14;
+    if (left > rect.width - 235) left = event.clientX - rect.left - 235;
+    if (top > rect.height - 90) top = event.clientY - rect.top - 90;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+
+  function hideTip() {
+    tip.style.opacity = 0;
+  }
+
+  /* -------------------------------------------------------------- PANEL UI */
+  let selectedIndex = null;
+  let selectedQuadrant = null;
+
+  function setBadges(items) {
+    document.getElementById('p-badges').innerHTML = items.map(function (item) {
+      return '<span class="badge ' + item.cls + '">' + item.text + '</span>';
+    }).join('');
+  }
+
+  function setMetrics(items) {
+    document.getElementById('p-metrics').innerHTML = items.map(function (item) {
+      return '<div class="metric"><b>' + item.value + '</b><span>' + item.label + '</span></div>';
+    }).join('');
+  }
+
+  function setPanel(config) {
+    document.getElementById('p-eyebrow').textContent = config.eyebrow;
+    document.getElementById('p-title').textContent = config.title;
+    setBadges(config.badges);
+    document.getElementById('p-desc').textContent = config.desc;
+    setMetrics(config.metrics);
+    document.getElementById('p-mini-head').textContent = config.miniHead;
+    document.getElementById('p-mini-note').textContent = config.miniNote;
+    if (config.donut) {
+      renderDonut(config.donut);
+    } else {
+      renderBars(config.bars);
+    }
+  }
+
+  function updateMapStyle() {
+    nodeRefs.forEach(function (ref, index) {
+      const selected = index === selectedIndex;
+      const stroke = selected ? '#0f172a' : (ref.hasRole ? '#f59e0b' : '#ffffff');
+      ref.circle.setAttribute('stroke', stroke);
+      ref.circle.setAttribute('stroke-width', selected ? 3.6 : (ref.hasRole ? 2.6 : 1.2));
+      ref.group.setAttribute('opacity', selectedIndex === null || selected ? 1 : 0.55);
+      ref.text.setAttribute('opacity', selectedIndex === null || selected ? 1 : 0.55);
+    });
+    Object.keys(quadRects).forEach(function (key) {
+      const active = key === selectedQuadrant;
+      quadRects[key].setAttribute('stroke', active ? '#0f172a' : 'none');
+      quadRects[key].setAttribute('stroke-width', active ? 1.6 : 0);
+      quadRects[key].setAttribute('stroke-dasharray', active ? '5 4' : '0');
+      quadRects[key].setAttribute('fill-opacity', selectedQuadrant && !active ? 0.45 : 0.9);
+    });
+    Object.keys(quadGroups).forEach(function (key) {
+      quadGroups[key].text.setAttribute('opacity', selectedIndex === null ? 1 : 0.45);
+    });
+  }
+
+  /* ----------------------------------------------------------- MINI CHARTS */
+  function renderBars(spec) {
+    const svg = document.getElementById('mini');
+    svg.innerHTML = '';
+    const width = 320, rowH = Math.min(30, 176 / Math.max(spec.items.length, 1));
+    const labelWidth = 116, barLeft = labelWidth + 8;
+    const barMax = width - barLeft - 46;
+    const maxValue = spec.max || Math.max.apply(null, spec.items.map(function (item) { return item.value; }).concat([1]));
+
+    spec.items.forEach(function (item, index) {
+      const y = index * rowH + 6;
+      const barWidth = Math.max((item.value / maxValue) * barMax, 1.5);
+      const label = el('text', {
+        x: 0, y: y + 13, 'font-size': 9.5, fill: '#475569',
+      }, svg);
+      label.textContent = shortLabel(item.label, 20);
+      el('rect', {
+        x: barLeft, y: y + 2, width: barMax, height: 15,
+        rx: 4, fill: '#eef2f7',
+      }, svg);
+      el('rect', {
+        x: barLeft, y: y + 2, width: barWidth, height: 15,
+        rx: 4, fill: item.color || '#1d4ed8',
+      }, svg);
+      const outsideX = barLeft + barWidth + 5;
+      const placeInside = outsideX > width - 26;
+      const value = el('text', {
+        x: placeInside ? barLeft + barWidth - 4 : outsideX,
+        y: y + 13, 'font-size': 9,
+        fill: placeInside ? '#ffffff' : '#64748b',
+        'text-anchor': placeInside ? 'end' : 'start',
+      }, svg);
+      value.textContent = item.suffix ? item.value.toFixed(1) + item.suffix : Math.round(item.value);    });
+  }
+
+  function renderDonut(spec) {
+    const svg = document.getElementById('mini');
+    svg.innerHTML = '';
+    const cx = 160, cy = 92, radius = 58, thickness = 17;
+    const circumference = 2 * Math.PI * radius;
+    const hardLength = circumference * (spec.hard / 100);
+
+    el('circle', {
+      cx: cx, cy: cy, r: radius, fill: 'none', stroke: '#10b981',
+      'stroke-width': thickness,
+    }, svg);
+    el('circle', {
+      cx: cx, cy: cy, r: radius, fill: 'none', stroke: '#1d4ed8',
+      'stroke-width': thickness,
+      'stroke-dasharray': hardLength + ' ' + (circumference - hardLength),
+      transform: 'rotate(-90 ' + cx + ' ' + cy + ')',
+      'stroke-linecap': 'butt',
+    }, svg);
+
+    const value = el('text', {
+      x: cx, y: cy - 2, 'text-anchor': 'middle', 'font-size': 22,
+      'font-weight': 700, fill: '#0f172a',
+    }, svg);
+    value.textContent = Math.round(spec.hard) + ' : ' + Math.round(spec.soft);
+
+    const caption = el('text', {
+      x: cx, y: cy + 18, 'text-anchor': 'middle', 'font-size': 9.5, fill: '#94a3b8',
+    }, svg);
+    caption.textContent = 'hard : soft';
+
+    const total = el('text', {
+      x: cx, y: cy + radius + 26, 'text-anchor': 'middle',
+      'font-size': 9.5, fill: '#94a3b8',
+    }, svg);
+    total.textContent = spec.total.toLocaleString('id-ID') + ' baris skill';
+  }
+
+  /* --------------------------------------------------------------- ACTIONS */
+  function selectSkill(index) {
+    const skill = SKILLS[index];
+    selectedIndex = index;
+    selectedQuadrant = null;
+    updateMapStyle();
+    hideTip();
+
+    const badges = [
+      { text: skill.type === 'Soft' ? 'Soft skill' : 'Hard skill', cls: skill.type === 'Soft' ? 'soft' : 'hard' },
+      { text: QUADS[skill.quadrant].label, cls: 'gray' },
+    ];
+    if (skill.roleNeed !== null && skill.roleNeed !== undefined) {
+      badges.push({ text: 'Kebutuhan ' + META.role, cls: 'gold' });
+    }
+
+    const metrics = [
+      { value: fmtPct(skill.supply), label: 'Alumni memiliki' },
+      { value: fmtSigned(skill.momentum), label: 'Momentum' },
+      { value: String(skill.strength.toLocaleString('id-ID')), label: 'Skor keterhubungan' },
+      {
+        value: skill.roleRank ? '#' + skill.roleRank : '—',
+        label: 'Prioritas di role',
+      },
+    ];
+
+    setPanel({
+      eyebrow: 'DETAIL SKILL',
+      title: skill.name,
+      badges: badges,
+      desc: skill.desc,
+      metrics: metrics,
+      miniHead: 'Kepemilikan vs kebutuhan vs tren',
+      miniNote: 'Batang abu-abu = skala 0-100%. Kebutuhan role 0% berarti skill tidak termasuk profil role target.',
+      bars: {
+        max: 100,
+        items: [
+          { label: 'Dimiliki alumni', value: skill.supply, color: '#1d4ed8' },
+          { label: 'Diminta role', value: skill.roleNeed === null ? 0 : skill.roleNeed, color: '#f59e0b' },
+          { label: 'Pangsa data terbaru', value: skill.recentShare, color: '#10b981' },
+          { label: 'Pangsa data lama', value: skill.earlierShare, color: '#94a3b8' },
+        ],
+      },
+    });
+  }
+
+  function selectQuadrant(key) {
+    const info = QUADS[key];
+    selectedIndex = null;
+    selectedQuadrant = key;
+    updateMapStyle();
+    hideTip();
+
+    const metrics = [
+      { value: String(info.count), label: 'Jumlah skill' },
+      { value: fmtPct(info.avgSupply), label: 'Rata-rata supply' },
+      { value: fmtSigned(info.avgMomentum), label: 'Rata-rata momentum' },
+      { value: String(info.roleCount), label: 'Diminta role target' },
+    ];
+
+    setPanel({
+      eyebrow: 'KUADRAN',
+      title: info.label,
+      badges: [
+        { text: info.count + ' skill', cls: 'gray' },
+        { text: 'Klik gelembung untuk detail', cls: 'gray' },
+      ],
+      desc: info.desc,
+      metrics: metrics,
+      miniHead: 'Skill terbesar di kuadran ini',
+      miniNote: 'Panjang batang = jumlah alumni yang memiliki skill.',
+      bars: {
+        items: info.members.map(function (member) {
+          return { label: member.name, value: member.alumni, color: info.color };
+        }),
+      },
+    });
+  }
+
+  function showSummary() {
+    selectedIndex = null;
+    selectedQuadrant = null;
+    updateMapStyle();
+    hideTip();
+
+    setPanel({
+      eyebrow: 'RINGKASAN',
+      title: 'Skills Intelligence',
+      badges: [
+        { text: 'Industri: ' + META.industry, cls: 'gray' },
+        { text: META.roleFound ? 'Role: ' + META.role : 'Role tidak ditemukan', cls: META.roleFound ? 'gold' : 'gray' },
+      ],
+      desc: META.summary,
+      metrics: [
+        { value: META.alumni.toLocaleString('id-ID'), label: 'Alumni dianalisis' },
+        { value: META.uniqueSkills.toLocaleString('id-ID'), label: 'Skill unik' },
+        { value: Math.round(META.hardPct) + ' : ' + Math.round(META.softPct), label: 'Hard : Soft' },
+        { value: META.roleFound ? Math.round(META.readiness) + '%' : '—', label: 'Readiness role' },
+      ],
+      miniHead: 'Komposisi hard vs soft',
+      miniNote: 'Proporsi baris skill, bukan jumlah alumni unik.',
+      donut: { hard: META.hardPct, soft: META.softPct, total: META.skillRows },
+    });
+  }
+
+  map.addEventListener('click', showSummary);
+  document.getElementById('reset').addEventListener('click', function (event) {
+    event.stopPropagation();
+    showSummary();
+  });
+
+  showSummary();
+})();
+</script>
+</body>
+</html>
